@@ -20,6 +20,7 @@ public class RabbitConfig {
     public static final String VALIDATE_ORDER_RESULT_QUEUE = "validate-order-result";
     public static final String ALLOCATE_ORDER_RESULT_QUEUE = "allocate-order-result";
     public static final String ALLOCATE_ORDER_REQUEST_QUEUE = "allocate-order-request";
+    public static final String DEALLOCATE_ORDER_QUEUE = "deallocate-order";
 
     @Bean
     public RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
@@ -74,6 +75,11 @@ public class RabbitConfig {
     @Bean
     public Queue allocateOrderResultQ() {
         return new Queue(ALLOCATE_ORDER_RESULT_QUEUE);
+    }
+
+    @Bean
+    public Queue deallocateOrderResultQ() {
+        return new Queue(DEALLOCATE_ORDER_QUEUE);
     }
 
     @Bean

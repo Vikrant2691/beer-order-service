@@ -91,26 +91,22 @@ class BeerOrderManagerTestIT {
         System.out.println("testNewToAllocate Beer id "+beerOrder.getId());
         BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
 
+        beerOrderManager.beerOrderPickedUp(beerOrder.getId());
+
 
 
         await().untilAsserted(() -> {
+
             BeerOrder foundOrder = beerOrderRepository.findById(beerOrder.getId()).get();
 
             assertEquals(BeerOrderStatusEnum.ALLOCATED, foundOrder.getOrderStatus());
+
         });
+        beerOrderManager.beerOrderPickedUp(savedBeerOrder.getId());
 
         await().untilAsserted(() -> {
             BeerOrder foundOrder = beerOrderRepository.findById(beerOrder.getId()).get();
-            BeerOrderLine line = foundOrder.getBeerOrderLines().iterator().next();
-            assertEquals(line.getOrderQuantity(), line.getQuantityAllocated());
-        });
-
-        BeerOrder savedBeerOrder2 = beerOrderRepository.findById(savedBeerOrder.getId()).get();
-
-        assertNotNull(savedBeerOrder2);
-
-        savedBeerOrder2.getBeerOrderLines().forEach(line -> {
-            assertEquals(line.getOrderQuantity(), line.getQuantityAllocated());
+            assertEquals(BeerOrderStatusEnum.PICKED_UP, foundOrder.getOrderStatus());
         });
 
     }
