@@ -19,12 +19,14 @@ public class ValidateOrderListener {
 
     private final BeerOrderManager beerOrderManager;
 
+    @Transactional
     @RabbitListener(queues = {RabbitConfig.VALIDATE_ORDER_RESULT_QUEUE})
     public void validateResponseListener(final OrderValidationResult orderValidationResult) {
 
         final UUID orderId= orderValidationResult.getOrderId();
 
-        System.out.println("Validation result of order id is: "+orderId);
+        System.out.println("Validation result of order id is: "+orderValidationResult.getIsValid().toString());
+        System.out.println("Validation result : "+orderValidationResult.getOrderId().toString());
 
         beerOrderManager.processValidationResult(orderId,orderValidationResult.getIsValid());
 

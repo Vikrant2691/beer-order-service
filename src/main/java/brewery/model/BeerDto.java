@@ -3,6 +3,7 @@ package brewery.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.OffsetDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -51,10 +52,12 @@ public class BeerDto {
 
     @Null
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ssZ", shape=JsonFormat.Shape.STRING)
+    @JsonSerialize(using = OffsetDateTimeSerializer.class)
     private OffsetDateTime createdDate;
 
     @Null
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ssZ", shape=JsonFormat.Shape.STRING)
+    @JsonSerialize(using = OffsetDateTimeSerializer.class)
     private OffsetDateTime lastModifiedDate;
 
     @JsonSerialize(using = LocalDateSerialization.class)

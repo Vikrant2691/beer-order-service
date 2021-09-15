@@ -38,7 +38,7 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         BeerOrder savedBeerOrder = beerOrderRepository.save(beerOrder);
         sendBeerOrderEvent(savedBeerOrder, BeerOrderEventEnum.VALIDATE_ORDER);
 
-        System.out.println("***********" + savedBeerOrder.toString());
+        System.out.println("*********** newBeerOrder " + savedBeerOrder.toString());
         return savedBeerOrder;
     }
 
@@ -47,10 +47,11 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     public void processValidationResult(UUID orderId, Boolean isValid) {
 
         BeerOrder beerOrder = beerOrderRepository.findOneById(orderId);
+        System.out.println("Validation passed for Order id "+beerOrder.getId().toString());
 
         if (isValid) {
             sendBeerOrderEvent(beerOrder, BeerOrderEventEnum.VALIDATION_PASSED);
-
+            System.out.println("Validation passed for Order id "+orderId);
 //            beerOrder.setOrderStatus(BeerOrderStatusEnum.VALIDATED);
             BeerOrder savedBeerOrder = beerOrderRepository.findOneById(orderId);
 
@@ -63,7 +64,6 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
     }
 
 
-    @Transactional
     @Override
     public void beerOrderAllocationPassed(BeerOrderDto beerOrderDto) {
         BeerOrder beerOrder = beerOrderRepository.findOneById(beerOrderDto.getId());
@@ -72,7 +72,6 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         updateAllocatedQty(beerOrderDto, beerOrder);
     }
 
-    @Transactional
     @Override
     public void beerOrderAllocationFailed(BeerOrderDto beerOrderDto) {
         BeerOrder beerOrder = beerOrderRepository.findOneById(beerOrderDto.getId());
@@ -82,7 +81,6 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         beerOrderRepository.save(beerOrder);
     }
 
-    @Transactional
     @Override
     public void beerOrderAllocationPendingInventory(BeerOrderDto beerOrderDto) {
         BeerOrder beerOrder = beerOrderRepository.findOneById(beerOrderDto.getId());
@@ -91,7 +89,8 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
         updateAllocatedQty(beerOrderDto, beerOrder);
     }
 
-    @Transactional
+
+
     @Override
     public void updateAllocatedQty(BeerOrderDto beerOrderDto, BeerOrder beerOrder) {
         BeerOrder allocatedOrder = beerOrderRepository.findOneById(beerOrderDto.getId());
@@ -108,19 +107,20 @@ public class BeerOrderManagerImpl implements BeerOrderManager {
 
     }
 
+//    @Transactional
     public void sendBeerOrderEvent(BeerOrder beerOrder, BeerOrderEventEnum beerOrderEventEnum) {
         StateMachine<BeerOrderStatusEnum, BeerOrderEventEnum> sm = build(beerOrder);
 
         Message<BeerOrderEventEnum> msg = MessageBuilder.withPayload(beerOrderEventEnum)
                 .setHeader(ORDER_ID_HEADER,beerOrder.getId().toString())
                 .build();
-        System.out.println("************************" + beerOrder.toString());
+        System.out.println("************************Event "+beerOrderEventEnum.toString()+" sent for " + beerOrder.toString());
         sm.sendEvent(msg);
 //                .doOnComplete(() -> System.out.println("................HI there")).subscribe();
 
     }
 
-    @Transactional
+//    @Transactional
     public StateMachine<BeerOrderStatusEnum, BeerOrderEventEnum> build(BeerOrder beerOrder) {
         StateMachine<BeerOrderStatusEnum, BeerOrderEventEnum> sm = stateMachineFactory.getStateMachine(beerOrder.getId());
 

@@ -37,15 +37,16 @@ public class ValidateOrderAction implements Action<BeerOrderStatusEnum, BeerOrde
 
         BeerOrder beerOrder = beerOrderRepository.findOneById(UUID.fromString(Objects.requireNonNull(beerOrderId)));
 
+        System.out.println(beerOrder.getId().toString());
 
-        System.out.println("In Action #############"+beerOrder.toString());
+        System.out.println("In Action #############  "+beerOrder.toString());
 
         BeerOrderDto beerOrderDto=beerOrderModelMapper.convertToDTO(beerOrder);
 
-        System.out.println("beerOrderDto"+beerOrderDto.toString());
+        System.out.println("beerOrderDto  "+beerOrderDto.toString());
 
         rabbitTemplate.convertAndSend(RabbitConfig.VALIDATE_ORDER_QUEUE, ValidateBeerOrderRequest.builder()
-        .beerOrderDto(beerOrderModelMapper.convertToDTO(beerOrder)).build());
+        .beerOrderDto(beerOrderDto).build());
 
         System.out.println("Sent Validation request for beerId: "+beerOrderId);
 

@@ -1,6 +1,9 @@
 package beer.order.service.domain;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -17,7 +20,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Builder
-@ToString
 public class Customer {
 
     @Id
@@ -50,4 +52,16 @@ public class Customer {
     private Set<BeerOrder> beerOrders;
 
 
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "id=" + id +
+                ", version=" + version +
+                ", createdDate=" + createdDate +
+                ", updatedDate=" + updatedDate +
+                ", customerName='" + customerName + '\'' +
+                ", apiKey=" + apiKey +
+//                ", beerOrders=" + beerOrders +
+                '}';
+    }
 }

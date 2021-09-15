@@ -15,7 +15,6 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString
 @Entity
 public class BeerOrder {
 
@@ -65,4 +64,18 @@ public class BeerOrder {
     private BeerOrderStatusEnum orderStatus = BeerOrderStatusEnum.NEW;
     private String orderStatusCallbackUrl;
 
+    @Override
+    public String toString() {
+        return "BeerOrder{" +
+                "id=" + id +
+                ", version=" + version +
+                ", createdDate=" + createdDate +
+                ", updatedDate=" + updatedDate +
+                ", customerRef='" + customerRef + '\'' +
+//                ", customer=" + customer +
+                ", beerOrderLines=" + beerOrderLines +
+                ", orderStatus=" + orderStatus +
+                ", orderStatusCallbackUrl='" + orderStatusCallbackUrl + '\'' +
+                '}';
+    }
 }

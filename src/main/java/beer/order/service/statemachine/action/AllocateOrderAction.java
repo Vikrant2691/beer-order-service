@@ -9,12 +9,14 @@ import beer.order.service.services.BeerOrderServiceImpl;
 import beer.order.service.web.mappers.BeerOrderMapper;
 import beer.order.service.web.mappers.BeerOrderModelMapper;
 import beer.order.service.web.model.ValidateBeerOrderRequest;
+import brewery.model.event.AllocateOrderRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.statemachine.StateContext;
 import org.springframework.statemachine.action.Action;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -29,6 +31,7 @@ public class AllocateOrderAction implements Action<BeerOrderStatusEnum, BeerOrde
 //    private final BeerOrderMapper beerOrderMapper;
     private final BeerOrderModelMapper beerOrderModelMapper;
 
+
     @Override
     public void execute(StateContext<BeerOrderStatusEnum, BeerOrderEventEnum> stateContext) {
 
@@ -36,11 +39,11 @@ public class AllocateOrderAction implements Action<BeerOrderStatusEnum, BeerOrde
 
         BeerOrder beerOrder = beerOrderRepository.findOneById(UUID.fromString(Objects.requireNonNull(beerOrderId)));
 
+        System.out.println(beerOrder.toString());
+        rabbitTemplate.convertAndSend(RabbitConfig.ALLOCATE_ORDER_QUEUE, AllocateOrderRequest.builder()
+        .beerOrderDto(beerOrderModelMapper.convertToDTO(beerOrder)).build());
 
-        rabbitTemplate.convertAndSend(RabbitConfig.ALLOCATE_ORDER_QUEUE, ValidateBeerOrderRequest.builder()
-        .beerOrderDto(beerOrderModelMapper.convertToDTO(beerOrder)));
-
-        log.debug("Sent Allocation request for beerId: "+beerOrderId);
+        System.out.println("Sent Allocation request for beerId: "+beerOrderId);
 
     }
 }

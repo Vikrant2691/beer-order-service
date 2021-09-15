@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ public class AllocateOrderListener {
 
     private final BeerOrderManager beerOrderManager;
 
+    @Transactional
     @RabbitListener(queues = RabbitConfig.ALLOCATE_ORDER_RESULT_QUEUE)
     public void listen(AllocateOrderResult allocateOrderResult){
 
