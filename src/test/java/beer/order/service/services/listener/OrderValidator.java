@@ -17,24 +17,29 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class OrderValidator {
 
+    private Boolean isValid = true;
     private final RabbitTemplate rabbitTemplate;
+
 
     @Transactional
     @RabbitListener(queues = {RabbitConfig.VALIDATE_ORDER_QUEUE})
     public void listen(ValidateBeerOrderRequest validateBeerOrderRequest) {
 
-
-
-        System.out.println("######## I RAN ##########  "+ validateBeerOrderRequest.toString());
-        if(validateBeerOrderRequest.getBeerOrderDto().getId()!=null) {
-            System.out.println("######## I RAN TOO##########");
-            rabbitTemplate.convertAndSend(
-                    RabbitConfig.VALIDATE_ORDER_RESULT_QUEUE,
-                    OrderValidationResult.builder()
-                            .orderId(validateBeerOrderRequest.getBeerOrderDto().getId())
-                            .isValid(true)
-                            .build());
+        if (validateBeerOrderRequest.getBeerOrderDto().getCustomerRef() != null && validateBeerOrderRequest.getBeerOrderDto().getCustomerRef().equals("failed-validation")) {
+            isValid = false;
         }
+
+
+//        System.out.println("######## I RAN ##########  " + validateBeerOrderRequest.toString());
+//        if (validateBeerOrderRequest.getBeerOrderDto().getId() != null) {
+//            System.out.println("######## I RAN TOO##########");
+//            rabbitTemplate.convertAndSend(
+//                    RabbitConfig.VALIDATE_ORDER_RESULT_QUEUE,
+//                    OrderValidationResult.builder()
+//                            .orderId(validateBeerOrderRequest.getBeerOrderDto().getId())
+//                            .isValid(isValid)
+//                            .build());
+//        }
 
 
     }

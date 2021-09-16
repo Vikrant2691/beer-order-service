@@ -18,15 +18,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class AllocateOrderValidator {
 
     private final RabbitTemplate rabbitTemplate;
+    Boolean allocationError = false;
+    Boolean pendingInventory = false;
 
     @Transactional
     @RabbitListener(queues = {RabbitConfig.ALLOCATE_ORDER_QUEUE})
     public void listen(AllocateOrderRequest allocateOrderRequest) {
 
 
+        if (allocateOrderRequest.getBeerOrderDto().getCustomerRef() != null && allocateOrderRequest.getBeerOrderDto().getCustomerRef().equals("beerOrderAllocationFailed")){
+            allocationError=true;
+            pendingInventory=true;
+        }
 
-        System.out.println("######## I RAN in Allocate ##########  "+ allocateOrderRequest.toString());
-        if(allocateOrderRequest.getBeerOrderDto().getId()!=null) {
+        if (allocateOrderRequest.getBeerOrderDto().getCustomerRef() != null && allocateOrderRequest.getBeerOrderDto().getCustomerRef().equals("beerOrderAllocationPendingInventory")){
+            pendingInventory=true;
+        }
+
+            System.out.println("######## I RAN in Allocate ##########  " + allocateOrderRequest.toString());
+        if (allocateOrderRequest.getBeerOrderDto().getId() != null) {
             System.out.println("######## I RAN TOO in Allocate ##########");
 
             allocateOrderRequest.getBeerOrderDto().getBeerOrderLines().forEach(beerOrderLineDto -> {
@@ -37,8 +47,8 @@ public class AllocateOrderValidator {
                     RabbitConfig.ALLOCATE_ORDER_RESULT_QUEUE,
                     AllocateOrderResult.builder()
                             .beerOrderDto(allocateOrderRequest.getBeerOrderDto())
-                            .allocationError(false)
-                            .pendingInventory(false)
+                            .allocationError(allocationError)
+                            .pendingInventory(pendingInventory)
                             .build());
         }
 

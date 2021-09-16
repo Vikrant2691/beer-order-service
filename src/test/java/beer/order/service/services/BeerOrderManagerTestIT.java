@@ -6,10 +6,8 @@ import beer.order.service.domain.BeerOrderStatusEnum;
 import beer.order.service.domain.Customer;
 import beer.order.service.repository.BeerOrderRepository;
 import beer.order.service.repository.CustomerRepository;
-import beer.order.service.services.beer.BeerPagedList;
 import beer.order.service.services.beer.BeerServiceImpl;
 import beer.order.service.statemachine.BeerOrderManager;
-import beer.order.service.web.model.BeerOrderDto;
 import brewery.model.BeerDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,8 +91,6 @@ class BeerOrderManagerTestIT {
 
         beerOrderManager.beerOrderPickedUp(beerOrder.getId());
 
-
-
         await().untilAsserted(() -> {
 
             BeerOrder foundOrder = beerOrderRepository.findById(beerOrder.getId()).get();
@@ -110,6 +106,113 @@ class BeerOrderManagerTestIT {
         });
 
     }
+
+    @Test
+    void testFailedValidation() throws JsonProcessingException {
+
+        BeerDto beerDto = BeerDto.builder().id(beerId).upc("12345").build();
+
+        wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH_V1 + "12345")
+                .willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+
+        BeerOrder beerOrder = createBeerOrder();
+
+        beerOrder.setCustomerRef("failed-validation");
+
+        System.out.println("testFailedValidation Beer id "+beerOrder.getId());
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
+        await().untilAsserted(() -> {
+
+            BeerOrder foundOrder = beerOrderRepository.findById(beerOrder.getId()).get();
+
+            assertEquals(BeerOrderStatusEnum.VALIDATION_EXCEPTION, foundOrder.getOrderStatus());
+
+        });
+
+    }
+
+    @Test
+    void testFailedAllocation() throws JsonProcessingException {
+
+        BeerDto beerDto = BeerDto.builder().id(beerId).upc("12345").build();
+
+        wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH_V1 + "12345")
+                .willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+
+        BeerOrder beerOrder = createBeerOrder();
+
+        beerOrder.setCustomerRef("beerOrderAllocationFailed");
+
+        System.out.println("testFailedValidation Beer id "+beerOrder.getId());
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
+        await().untilAsserted(() -> {
+
+            BeerOrder foundOrder = beerOrderRepository.findById(beerOrder.getId()).get();
+
+            assertEquals(BeerOrderStatusEnum.ALLOCATION_EXCEPTION, foundOrder.getOrderStatus());
+
+        });
+
+    }
+
+    @Test
+    void testPendingAllocation() throws JsonProcessingException {
+
+        BeerDto beerDto = BeerDto.builder().id(beerId).upc("12345").build();
+
+        wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH_V1 + "12345")
+                .willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+
+        BeerOrder beerOrder = createBeerOrder();
+
+        beerOrder.setCustomerRef("beerOrderAllocationPendingInventory");
+
+        System.out.println("testFailedValidation Beer id "+beerOrder.getId());
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
+        await().untilAsserted(() -> {
+
+            BeerOrder foundOrder = beerOrderRepository.findById(beerOrder.getId()).get();
+
+            assertEquals(BeerOrderStatusEnum.ALLOCATION_PENDING, foundOrder.getOrderStatus());
+
+        });
+
+    }
+
+    @Test
+    void validationCancelled() throws JsonProcessingException {
+
+        BeerDto beerDto = BeerDto.builder().id(beerId).upc("12345").build();
+
+        wireMockServer.stubFor(get(BeerServiceImpl.BEER_UPC_PATH_V1 + "12345")
+                .willReturn(okJson(objectMapper.writeValueAsString(beerDto))));
+
+        BeerOrder beerOrder = createBeerOrder();
+        BeerOrder savedBeerOrder = beerOrderManager.newBeerOrder(beerOrder);
+
+        await().untilAsserted(() -> {
+
+            BeerOrder foundOrder = beerOrderRepository.findById(beerOrder.getId()).get();
+
+            assertEquals(BeerOrderStatusEnum.VALIDATION_PENDING, foundOrder.getOrderStatus());
+
+        });
+
+        beerOrderManager.beerOrderCancelled(beerOrder.getId());
+
+        await().untilAsserted(() -> {
+
+            BeerOrder foundOrder = beerOrderRepository.findById(beerOrder.getId()).get();
+
+            assertEquals(BeerOrderStatusEnum.CANCELLED, foundOrder.getOrderStatus());
+
+        });
+
+    }
+
 
     @Test
     void testStateMachine() {
